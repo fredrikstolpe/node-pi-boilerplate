@@ -1,0 +1,58 @@
+<html>
+<head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+
+    var socket = io.connect(window.location.host);
+
+    var ledState = [false, false, false, false, false];
+    var currentLed = 0;
+    var timer;
+
+    function toggleLed(ledNo){
+      ledState[ledNo-1] = !ledState[ledNo-1]
+      emit();
+    }
+
+    function cycleLeds(){
+      for (var i = 0; i < 5; i++){
+        ledState[i] = (i == currentLed);
+      }
+      emit();
+      document.getElementById("currentCycle").innerHTML = currentLed + 1;
+      currentLed ++;
+      if (currentLed == 5){
+        currentLed = 0;
+      }
+      timer = setTimeout(cycleLeds, 500);
+    }
+
+    function stopCycle(){
+      if (timer != null){
+        clearTimeout(timer);
+      }
+    }
+
+    function emit(){
+      socket.emit('setLedState', {
+        led1: ledState[0],
+        led2: ledState[1],
+        led3: ledState[2],
+        led4: ledState[3],
+        led5: ledState[4]
+      });
+    }
+  </script>
+</head>
+<body>
+  <button onclick="toggleLed(1)">Toggle led 1</button>
+  <button onclick="toggleLed(2)">Toggle led 2</button>
+  <button onclick="toggleLed(3)">Toggle led 3</button>
+  <button onclick="toggleLed(4)">Toggle led 4</button>
+  <button onclick="toggleLed(5)">Toggle led 5</button>
+  <br/>
+  <button onclick="cycleLeds()">Cycle leds</button>
+  <button onclick="stopCycle()">Stop cycle</button>
+  <span id="currentCycle"></span>
+</body>
+</html>
