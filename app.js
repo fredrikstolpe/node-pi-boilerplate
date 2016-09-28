@@ -5,6 +5,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var Q = require('q');
 var Pin = require('./modules/pin.js');
+var config = require('./config');
 
 var gpio = null;
 try{
@@ -21,26 +22,25 @@ server.listen(3000, function () {
   console.log('Server listening at port 3000');
 });
 
-var led1 = new Pin(11),
-  led2 = new Pin(13),
-  led3 = new Pin(19),
-  led4 = new Pin(21),
-  led5 = new Pin(23);
+var pir = new Pin(config.pinPirSensor);
 
 Q.all([
-  led1.setupOutput(),
-  led2.setupOutput(),
-  led3.setupOutput(),
-  led4.setupOutput(),
-  led5.setupOutput()
+  pir.setupInput(pirMovement)
 ])
 .then(function(){
-  console.log("Leds initialized");
+  console.log("GPIO initialized");
 })
 .catch(function(err){
   console.log(err);
 });
 
+function pirMovement(val){
+  if (val){
+    console.log("pir movement!");
+  }
+}
+
+/*
 io.on('connection', function(socket){
   console.log('Socket client connected');
   socket.on('setLedState', function (data) {
@@ -62,6 +62,7 @@ io.on('connection', function(socket){
     }
   });
 });
+*/
 
 process.on('SIGINT', function () {
   gpio.destroy(function() {

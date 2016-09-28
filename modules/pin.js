@@ -19,14 +19,8 @@ function Pin(pin){
 Pin.prototype.setupOutput = function(){
   var self = this;
   var deferred = Q.defer();
-  gpio.setup(this.pin, gpio.DIR_OUT, function(err){
-    if (err){
-        deferred.reject(err);
-      }
-      else{
-        //console.log('Pin ' + self.pin + ' opened');
-        deferred.resolve('Pin setup');
-      }
+  gpio.setup(this.pin, gpio.DIR_OUT, function(){
+    deferred.resolve();
   });
   return deferred.promise;
 };
@@ -39,9 +33,22 @@ Pin.prototype.write = function(value){
       deferred.reject(err);
     }
     else{
-      //console.log('Pin ' + self.pin + ' value ' + value);
-      deferred.resolve('Written to pin');
+      deferred.resolve();
     }
+  });
+  return deferred.promise;
+};
+
+Pin.prototype.setupInput = function(callback){
+  var self = this;
+  var deferred = Q.defer();
+  gpio.setup(this.pin, gpio.DIR_IN, gpio.EDGE_BOTH, function(err){
+    gpio.on('change', function(channel, value) {
+      if (channel == self.pin){
+        callback(value);
+      }
+    });
+    deferred.resolve();
   });
   return deferred.promise;
 };
